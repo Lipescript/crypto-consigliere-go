@@ -1,13 +1,21 @@
 package services
 
 import (
+	"auto-trader-bot/internal/core/domain"
 	"auto-trader-bot/internal/core/ports"
 )
 
 type UserWalletService struct {
-	converter ports.FiatConverter
+	userRetriever ports.UserRetriever
 }
 
-func NewWalletService(converter ports.FiatConverter) *UserWalletService {
-	return &UserWalletService{converter: converter}
+func NewWalletService(userRetriever ports.UserRetriever) *UserWalletService {
+	return &UserWalletService{userRetriever: userRetriever}
+}
+
+func (userWalletService *UserWalletService) GetUserWalletInfo(user domain.User) domain.Wallet {
+
+	userWalletService.userRetriever.GetUserInfo()
+
+	return user.PersonalWallet
 }

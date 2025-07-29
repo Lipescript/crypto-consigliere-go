@@ -20,7 +20,7 @@ func (currencyService *CurrencyService) CalculateWalletTotalFiat(wallet *domain.
 		return nil
 	}
 
-	calculatedTotal, err := currencyService.iterateAndSumAssets(wallet.CryptoAssets, wallet.DefaultFiatCurrency)
+	calculatedTotal, err := currencyService.iterateAndSumAssets(wallet.CryptoAssets, wallet.DefaultFiatCode)
 
 	if err != nil {
 		return err
@@ -52,7 +52,7 @@ func (currencyService *CurrencyService) getAssetValueInTargetCurrency(asset doma
 	assetValue := new(big.Int).Set(asset.FiatValue.Amount)
 
 	if asset.FiatValue.Currency != targetCurrency {
-		convertedValue, err := currencyService.converter.ConvertToCurrency(
+		convertedValue, err := currencyService.converter.ConvertCurrencyTo(
 			assetValue,
 			asset.FiatValue.Currency,
 			targetCurrency,
