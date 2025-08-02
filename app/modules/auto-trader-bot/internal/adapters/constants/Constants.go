@@ -1,11 +1,11 @@
 package adapters
 
 const (
-	BinanceAPIBaseURL          = "https://api.binance.com"
-	APIVersion                 = "v3"
-	ConvertGetQuoteEndpoint    = "/sapi/v1/convert/getQuote"
-	ConvertAcceptQuoteEndpoint = "/sapi/v1/convert/acceptQuote"
-	TradingPairsEndpoint       = "/api/v3/exchangeInfo"
+	BinanceAPIBaseURL  = "https://api1.binance.com"
+	BinanceAPI2BaseURL = "https://api2.binance.com"
+	BinanceAPI3BaseURL = "https://api3.binance.com"
+
+	GET_ACCOUNT_INFO = "/api/v3/account"
 
 	// Testnet (for developing purposes)
 	BinanceAPITestnetBaseURL = "https://testnet.binance.vision"

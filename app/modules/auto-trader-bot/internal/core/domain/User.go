@@ -2,12 +2,19 @@ package domain
 
 import (
 	"math/big"
+	"time"
 )
 
-type User struct {
-	Username       string `json:"username" validate:"required"` // Unique identifier
-	Email          string `json:"email" validate:"email"`       // User contact
-	PersonalWallet Wallet `json:"wallet" validate:"required"`   // Primary crypto wallet
+type UserAccount struct {
+	Username       string    `json:"username"`
+	AccountType    string    `json:"account_type"`
+	CanTrade       bool      `json:"can_trade"`
+	CanWithdraw    bool      `json:"can_withdraw"`
+	CanDeposit     bool      `json:"can_deposit"`
+	CommissionRate float64   `json:"commission_rate"`
+	UpdatedAt      time.Time `json:"updated_at"`
+	Permissions    []string  `json:"permissions"`
+	PersonalWallet Wallet    `json:"wallet" validate:"required"` // Primary crypto wallet
 }
 
 type Wallet struct {
