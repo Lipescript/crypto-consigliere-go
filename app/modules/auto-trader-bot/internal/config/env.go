@@ -1,8 +1,10 @@
 package config
 
 import (
-	"errors"
+	"fmt"
 	"os"
+
+	"github.com/shirou/gopsutil/host"
 )
 
 func GetLocalAPICredentials() (string, string, error) {
@@ -10,7 +12,9 @@ func GetLocalAPICredentials() (string, string, error) {
 	clientSecret := os.Getenv("BINANC_API_SECRET_READ")
 
 	if clientID == "" || clientSecret == "" {
-		return "", "", errors.New("credencials not found. Verify your OS variables.")
+		hostInfo, _ := host.Info()
+		userSO := hostInfo.Platform
+		return "", "", fmt.Errorf("credencials not found. Verify your '%s' system variables.", userSO)
 	}
 
 	return clientID, clientSecret, nil
