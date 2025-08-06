@@ -1,57 +1,64 @@
 package main
 
 import (
+	constants "auto-trader-bot/internal/adapters/constants"
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
-	"time"
 
 	binance "github.com/binance/binance-connector-go"
 )
 
 func main() {
+
 	apiKey := os.Getenv("BINANCE_API_KEY_READ")
 	apiSecret := os.Getenv("BINANCE_API_SECRET_READ")
 
-	if apiKey == "" || apiSecret == "" {
-		log.Fatal("Credenciais não configuradas")
+	clientConnector := binance.NewClient(apiKey, apiSecret, constants.BinanceAPIBaseURL)
+
+	result, err := getMarketCryptoInfo(clientConnector)
+	if err != nil {
+		log.Fatalf("Erro: %v", err)
 	}
 
-	client := binance.NewClient(apiKey, apiSecret)
-	client.HTTPClient = &http.Client{Timeout: 10 * time.Second}
-
-	getMyTrades(client)
+	fmt.Println("Saldos formatados:")
+	fmt.Println(result)
 
 }
 
-func getAccountBalances(client *binance.Client) ([]binance.Balance, error) {
-	res, err := client.NewGetAccountService().Do(context.Background())
+// POST /sapi/v1/asset/get-funding-asset
+func getFundingBalances(client *binance.Client) (string, error) {
+	res, err := client.NewFundingWalletService().NeedBtcValuation("YES").Do(context.Background())
+
 	if err != nil {
-		return nil, err
+		return "", fmt.Errorf("erro ao obter saldos: %v", err)
 	}
-	return res.Balances, nil
+
+	prettyJSON, err := json.MarshalIndent(res, "", "  ")
+
+	if err != nil {
+		return "", fmt.Errorf("erro na formatação JSON: %v", err)
+	}
+
+	return string(prettyJSON), nil
 }
 
-func getAccountWalletInfo(client *binance.Client) {
-	// AccountInfoService - /sapi/v1/account/apiTradingStatus
-	accountInfo, err := client.NewAccountInfoService().
-		Do(context.Background())
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Println(binance.PrettyPrint(accountInfo))
-}
+// GET /api/v3/ticker/24hr
+func getMarketCryptoInfo(client *binance.Client) (string, error) {
+	//usar filtro para pesquisa condicionada .Symbols()
+	res, err := client.NewTicker24hrService().Symbol("BNBBTC").Do(context.Background())
 
-func getMyTrades(client *binance.Client) {
-	// AccountInfoService - /sapi/v1/account/apiTradingStatus
-	accountInfo, err := client.NewGetMyTradesService().
-		Do(context.Background())
 	if err != nil {
-		fmt.Println(err)
-		return
+		return "", fmt.Errorf("erro ao obter informações da moeda: %v", err)
 	}
-	fmt.Println(binance.PrettyPrint(accountInfo))
+
+	prettyJSON, err := json.MarshalIndent(res, "", "  ")
+
+	if err != nil {
+		return "", fmt.Errorf("erro na formatação JSON: %v", err)
+	}
+
+	return string(prettyJSON), nil
 }
