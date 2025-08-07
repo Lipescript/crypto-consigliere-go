@@ -4,13 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 
 	api "auto-trader-bot/internal/adapters/api"
 	constants "auto-trader-bot/internal/constants"
+	domain "auto-trader-bot/internal/core/domain"
 	ports "auto-trader-bot/internal/core/ports"
 
-	binance_connector "github.com/binance/binance-connector-go"
+	binance_connector_lib "github.com/binance/binance-connector-go"
 )
 
 // Interfaces
@@ -18,33 +18,51 @@ var _ ports.AccountRetriever = (*BinanceAdapter)(nil)
 var _ ports.MarketRetriever = (*BinanceAdapter)(nil)
 
 type BinanceAdapter struct {
-	*api.BaseExchangeAdapter
-	binanceClient *binance_connector.Client
+	*api.BaseAdapter
+	binanceClient *binance_connector_lib.Client
 }
 
 func NewBinanceAdapter(apiKey, apiSecret string) *BinanceAdapter {
 	return &BinanceAdapter{
-		BaseExchangeAdapter: api.NewApiBaseAdapter(
+		BaseAdapter: api.NewBaseAdapter(
 			apiKey,
 			apiSecret,
 			constants.BinanceAPIBaseURL,
 		),
-		binanceClient: binance_connector.NewClient(apiKey, apiSecret, constants.BinanceAPIBaseURL),
+		binanceClient: binance_connector_lib.NewClient(apiKey, apiSecret, constants.BinanceAPIBaseURL),
 	}
 }
 
 // GET /api/v3/account
-func (adapter *BinanceAdapter) GetAccountGeneralInfo() {
-	accountInfo, err := adapter.binanceClient.NewGetAccountService().Do(context.Background())
+func (adapter *BinanceAdapter) GetAccountGeneralInfo() (domain.ExchangeAccount, error) {
+	var err error
+
+	result := domain.ExchangeAccount{}
+
+	accountInfoRes, err := adapter.binanceClient.NewGetAccountService().Do(context.Background())
+
 	if err != nil {
-		log.Printf("%s: %s", constants.LogPrefix, fmt.Sprintf(constants.ErrorAccountInfo, err))
-		return
+		return domain.ExchangeAccount{}, fmt.Errorf("erro ao obter informações da conta: %v", err)
 	}
 
-	fmt.Println(constants.AccountInfoHeader)
-	fmt.Printf("%s\n", fmt.Sprintf(constants.CanTradeFormat, accountInfo.CanTrade))
-	fmt.Printf("%s\n", fmt.Sprintf(constants.CanWithdrawFormat, accountInfo.CanWithdraw))
-	fmt.Printf("%s\n", fmt.Sprintf(constants.CanDepositFormat, accountInfo.CanDeposit))
+	result.CanTrade = accountInfoRes.CanTrade
+	result.CanDeposit = accountInfoRes.CanDeposit
+	result.CanWithdraw = accountInfoRes.CanWithdraw
+	result.AccountType = accountInfoRes.AccountType
+	result.UpdatedAt = api.ConvertTimestamp(accountInfoRes.UpdateTime)
+
+	accountSnapshotRes, err := adapter.binanceClient.NewGetAccountSnapshotService().MarketType("SPOT").Do(context.Background())
+
+	if err != nil {
+		return domain.ExchangeAccount{}, fmt.Errorf("erro ao obter informações do snapshot da conta: %v", err)
+	}
+
+	if len(accountSnapshotRes.SnapshotVos) > 0 {
+		// First (more recent) account snapshot
+		result.TotalAssetOfBtc = accountSnapshotRes.SnapshotVos[0].Data.TotalAssetOfBtc
+	}
+
+	return result, nil
 }
 
 // POST /sapi/v1/asset/get-funding-asset

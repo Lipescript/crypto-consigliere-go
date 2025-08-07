@@ -1,7 +1,9 @@
 package ports
 
+import domain "auto-trader-bot/internal/core/domain"
+
 type AccountRetriever interface {
-	GetAccountGeneralInfo()
+	GetAccountGeneralInfo() (domain.ExchangeAccount, error)
 	GetAccountFundingBalances() (string, error)
 }
 
