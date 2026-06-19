@@ -1,0 +1,4 @@
+debug_app
+key
+*.env
+.env

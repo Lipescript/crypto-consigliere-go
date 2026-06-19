@@ -10,7 +10,6 @@ import (
 
 func main() {
 	binanceAdapter := binance.NewBinanceAdapter(os.Getenv("BINANCE_API_KEY_READ"), os.Getenv("BINANCE_API_SECRET_READ"))
-	binanceAdapter.GetAccountGeneralInfo()
 
 	accountInfo, err := binanceAdapter.GetAccountGeneralInfo()
 	if err != nil {

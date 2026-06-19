@@ -11,23 +11,23 @@ import (
 
 type BaseAdapter struct {
 	Client    *http.Client
-	APIKey    string
-	APISecret string
+	apiKey    string
+	apiSecret string
 	BaseURL   string
 }
 
 func NewBaseAdapter(apiKey, apiSecret, baseURL string) *BaseAdapter {
 	return &BaseAdapter{
 		Client:    &http.Client{Timeout: constants.DefaultAPITimeoutSeconds * time.Second},
-		APIKey:    apiKey,
-		APISecret: apiSecret,
+		apiKey:    apiKey,
+		apiSecret: apiSecret,
 		BaseURL:   baseURL,
 	}
 }
 
 // security utils
 func (b *BaseAdapter) generateHMACSHA256(data []byte) string {
-	mac := hmac.New(sha256.New, []byte(b.APISecret))
+	mac := hmac.New(sha256.New, []byte(b.apiSecret))
 	mac.Write(data)
 	return hex.EncodeToString(mac.Sum(nil))
 }
@@ -35,7 +35,7 @@ func (b *BaseAdapter) generateHMACSHA256(data []byte) string {
 // timestamp utils
 func ConvertTimestamp(timestamp uint64) time.Time {
 	if timestamp == 0 {
-		return time.Now()
+		return time.Time{}
 	}
 
 	if timestamp > 1e10 {
@@ -47,14 +47,14 @@ func ConvertTimestamp(timestamp uint64) time.Time {
 
 func ConvertTimestampMillis(timestamp uint64) time.Time {
 	if timestamp == 0 {
-		return time.Now()
+		return time.Time{}
 	}
 	return time.Unix(int64(timestamp/1000), int64((timestamp%1000)*1e6))
 }
 
 func ConvertTimestampSeconds(timestamp uint64) time.Time {
 	if timestamp == 0 {
-		return time.Now()
+		return time.Time{}
 	}
 	return time.Unix(int64(timestamp), 0)
 }
